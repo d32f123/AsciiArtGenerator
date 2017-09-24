@@ -4,6 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+/* This program converts an image of any known format
+ * to ASCII charset art based on the brightness of 
+ * every individual pixel.
+ * 
+ * For usage, try running the program without arguments
+ */
+
 namespace AsciiArtGenerator
 {
     struct Parameters
@@ -18,7 +25,7 @@ namespace AsciiArtGenerator
     class Program
     {
         private static string usage =
-            "Usage: imagetoascii <filename> [-o output_file] [-a adjustment] [-c chars] [-r max_res]\n" +
+            "Usage: AsciiArtGenerator <filename> [-o output_file] [-a adjustment] [-c chars] [-r max_res]\n" +
             "\toutput_file: resulting file,\n\tadjustment: char height to width ratio\n\t" +
             "chars: characters used in building ascii art\n\tmax_res: max resolution of the resulting image\n";
 
@@ -37,6 +44,8 @@ namespace AsciiArtGenerator
             artGenerator.Convert(parameters.textFilename);
         }
 
+        // Gets parameters from console
+        // For more info, see usage
         static Parameters GetParameters(string[] args)
         {
             Parameters parameters = new Parameters();
