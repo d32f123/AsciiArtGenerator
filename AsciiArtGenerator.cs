@@ -43,7 +43,7 @@ namespace AsciiArtGenerator
         public AsciiArtGenerator(string image) { ImageSource = image; }
 
         // Constants (default values)------------------------------------------------------------------------
-        private const string DEFAULT_CHARS = " !@#$%^&*.,+/";
+        private const string DEFAULT_CHARS = " .,/?;:|~`!@#$%^&*()-_=+";
         private const int DEFAULT_IMAGE_RES = 100;
         private const double DEFAULT_ADJUSTMENT = 17.0 / 8.0;
         private const bool DEFAULT_INVERT_COLOR = false;
