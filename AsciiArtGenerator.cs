@@ -13,20 +13,6 @@ namespace AsciiArtGenerator
     class AsciiArtGenerator
     {
         // Constructors--------------------------------------------------------------------------------------
-        public AsciiArtGenerator(string image, double adjustment) : 
-            this(image, DEFAULT_CHARS, DEFAULT_IMAGE_RES, DEFAULT_ADJUSTMENT) { }
-        public AsciiArtGenerator(string image, string chars) :
-            this(image, chars, DEFAULT_IMAGE_RES, DEFAULT_ADJUSTMENT) { }
-        public AsciiArtGenerator(string image, int imageRes) :
-            this(image, DEFAULT_CHARS, imageRes, DEFAULT_ADJUSTMENT) { }
-        public AsciiArtGenerator(string image, string chars, double adjustment) :
-            this(image, chars, DEFAULT_IMAGE_RES, adjustment) { }
-        public AsciiArtGenerator(string image, string chars, int imageRes) :
-            this(image, chars, imageRes, DEFAULT_ADJUSTMENT) { }
-        public AsciiArtGenerator(string image, int imageRes, double adjustment) :
-            this(image, DEFAULT_CHARS, imageRes, adjustment) { }
-        public AsciiArtGenerator(string image, string chars, int imageRes, double adjustment) : this(image)
-            { Chars = chars; Adjustment = adjustment; ImageRes = imageRes; }
         public AsciiArtGenerator(Parameters parameters)
         {
             if (parameters.imageFilename.Length == 0)
@@ -48,6 +34,11 @@ namespace AsciiArtGenerator
                 ImageRes = DEFAULT_IMAGE_RES;
             else
                 ImageRes = parameters.maxRes;
+
+            if (parameters.invert != DEFAULT_INVERT_COLOR)
+                invertColor = true;
+            else
+                invertColor = DEFAULT_INVERT_COLOR;
         }
         public AsciiArtGenerator(string image) { ImageSource = image; }
 
@@ -55,6 +46,7 @@ namespace AsciiArtGenerator
         private const string DEFAULT_CHARS = " !@#$%^&*.,+/";
         private const int DEFAULT_IMAGE_RES = 100;
         private const double DEFAULT_ADJUSTMENT = 17.0 / 8.0;
+        private const bool DEFAULT_INVERT_COLOR = false;
 
 
         // Settings------------------------------------------------------------------------------------------
@@ -69,6 +61,8 @@ namespace AsciiArtGenerator
                                                 // therefore, to maintain aspect ratio, width should be 16.0*9.0
                                                 // times greater than it actual value in the image is
 
+        private bool invertColor;               // Set this to true to invert the resulting color
+
         // Properties----------------------------------------------------------------------------------------
         public string ImageSource               // filename for the image to convert
         { set { bitmap = new Bitmap(value); } } // will throw an exception if file is not found
@@ -79,6 +73,7 @@ namespace AsciiArtGenerator
         }
         public double Adjustment { get { return adjustment; } set { adjustment = value; } }
         public int ImageRes { get { return imageRes; } set { imageRes = value; } }
+        public bool InvertColor { get { return invertColor; } set { invertColor = value; } }
 
         // Methods-------------------------------------------------------------------------------------------
 
@@ -135,17 +130,24 @@ namespace AsciiArtGenerator
          **/
         public void Convert(string filename)
         {
+            // Get the resulting image dimensions
             Size newSize = getSizeWithAdjustment(bitmap, imageRes, imageRes);
             using (var dest = new StreamWriter(filename))
             {
+                // Create the resulting image (ready for conversion)
                 Bitmap bitmap = Resize(this.bitmap, newSize.Width, newSize.Height);
                 for (var y = 0; y < bitmap.Height; ++y)
                 {
                     for (var x = 0; x < bitmap.Width; ++x)
                     {
+                        // For every pixel check its' brightness
                         var color = bitmap.GetPixel(x, y);
-                        var brightness = 1 - Brightness(color) / 255.0;
+                        // invert the brightness if InvertColor is set
+                        var brightness = Brightness(color) / 255.0;
+                        if (invertColor)
+                            brightness = 1 - brightness;
 
+                        // And select a character based on its' brightness
                         int charIndex = (int)Math.Round((chars.Length - 1) * brightness);
                         char ch = chars[charIndex];
 

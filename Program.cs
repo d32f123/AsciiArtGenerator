@@ -20,14 +20,16 @@ namespace AsciiArtGenerator
         public double adjustment;
         public string chars;
         public int maxRes;
+        public bool invert;
     }
 
     class Program
     {
         private static string usage =
-            "Usage: AsciiArtGenerator <filename> [-o output_file] [-a adjustment] [-c chars] [-r max_res]\n" +
-            "\toutput_file: resulting file,\n\tadjustment: char height to width ratio\n\t" +
-            "chars: characters used in building ascii art\n\tmax_res: max resolution of the resulting image\n";
+            "Usage: AsciiArtGenerator <filename> [-o output_file] [-a adjustment] [-c chars] [-r max_res] [-i]\n" +
+            "\t-o output_file: resulting file,\n\t-a adjustment: char height to width ratio\n\t" +
+            "-c chars: characters used in building ascii art\n\t-r tmax_res: max resolution of the resulting image\n" +
+            "-i: invert the resulting image";
 
         static void Main(string[] args)
         {
@@ -57,6 +59,7 @@ namespace AsciiArtGenerator
             parameters.chars = "";
             parameters.textFilename = "ascii.txt";
             parameters.maxRes = -1;
+            parameters.invert = false;
 
             for (int i = 1; i < args.Length; ++i)
             {
@@ -90,6 +93,11 @@ namespace AsciiArtGenerator
                     {
                         Console.Error.WriteLine("max_res should be an integer value.. Using default\n");
                     }
+                }
+                else if (key == "-i")
+                {
+                    --i;                    // no second argument for this key
+                    parameters.invert = true;
                 }
                 else                        // unknown key
                     continue;
