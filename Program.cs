@@ -28,7 +28,7 @@ namespace AsciiArtGenerator
         private static string usage =
             "Usage: AsciiArtGenerator <filename> [-o output_file] [-a adjustment] [-c chars] [-r max_res] [-i]\n" +
             "\t-o output_file: resulting file,\n\t-a adjustment: char height to width ratio\n\t" +
-            "-c chars: characters used in building ascii art\n\t-r tmax_res: max resolution of the resulting image\n" +
+            "-c chars: characters used in building ascii art\n\t-r max_res: max resolution of the resulting image\n" +
             "-i: invert the resulting image";
 
         static void Main(string[] args)
