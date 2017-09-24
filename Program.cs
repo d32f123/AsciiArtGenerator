@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -33,6 +34,7 @@ namespace AsciiArtGenerator
 
         static void Main(string[] args)
         {
+           
             if (args.Length < 1)
             {
                 Console.Error.Write(usage);
@@ -41,9 +43,33 @@ namespace AsciiArtGenerator
             }
 
             Parameters parameters = GetParameters(args);
+            AsciiArtGenerator artGenerator;
+            try
+            {
+                artGenerator = new AsciiArtGenerator(parameters);
+            }
+            catch (Exception)
+            {
+                Console.Error.Write("Invalid input filename!");
+                Console.ReadKey();
+                return;
+            }
 
-            var artGenerator = new AsciiArtGenerator(parameters);
-            artGenerator.Convert(parameters.textFilename);
+            try
+            {
+                using (TextWriter stream = parameters.textFilename == "" ? Console.Out : new StreamWriter(parameters.textFilename))
+                {
+                    artGenerator.Convert(stream);
+                    if (parameters.textFilename == "")
+                        Console.ReadKey();
+                }
+            }
+            catch (Exception)
+            {
+                Console.Error.Write("Invalid output filename!");
+                Console.ReadKey();
+                return;
+            }
         }
 
         // Gets parameters from console
@@ -57,7 +83,7 @@ namespace AsciiArtGenerator
             // set the defaults
             parameters.adjustment = -1.0;
             parameters.chars = "";
-            parameters.textFilename = "ascii.txt";
+            parameters.textFilename = "";
             parameters.maxRes = -1;
             parameters.invert = false;
 

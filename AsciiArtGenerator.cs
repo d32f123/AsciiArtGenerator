@@ -52,7 +52,7 @@ namespace AsciiArtGenerator
         // Settings------------------------------------------------------------------------------------------
         private int imageRes;                   // targeted image resolution (either max height or width)
                                                 // the resulting art will maintain the same aspect ratio as the original
-        private Bitmap bitmap;
+        private Bitmap source;
         private string chars;                   // characters used to synthesize the resulting ASCII art
                                                 // they are sorted in order of increasing brightness
 
@@ -65,7 +65,7 @@ namespace AsciiArtGenerator
 
         // Properties----------------------------------------------------------------------------------------
         public string ImageSource               // filename for the image to convert
-        { set { bitmap = new Bitmap(value); } } // will throw an exception if file is not found
+        { set { source = new Bitmap(value); } } // will throw an exception if file is not found
         public string Chars
         {
             get { return (string)chars.Clone(); }
@@ -128,35 +128,33 @@ namespace AsciiArtGenerator
          * <summary>Does the whole job of converting an image pointed to by its' filename to ASCII art</summary>
          * <param name="filename">The filename of the image to be converted</param>
          **/
-        public void Convert(string filename)
+        public void Convert(TextWriter dest)
         {
             // Get the resulting image dimensions
-            Size newSize = getSizeWithAdjustment(bitmap, imageRes, imageRes);
-            using (var dest = new StreamWriter(filename))
+            Size newSize = getSizeWithAdjustment(source, imageRes, imageRes);
+
+            // Create the resulting image (ready for conversion)
+            Bitmap bitmap = Resize(this.source, newSize.Width, newSize.Height);
+            for (var y = 0; y < bitmap.Height; ++y)
             {
-                // Create the resulting image (ready for conversion)
-                Bitmap bitmap = Resize(this.bitmap, newSize.Width, newSize.Height);
-                for (var y = 0; y < bitmap.Height; ++y)
+                for (var x = 0; x < bitmap.Width; ++x)
                 {
-                    for (var x = 0; x < bitmap.Width; ++x)
-                    {
-                        // For every pixel check its' brightness
-                        var color = bitmap.GetPixel(x, y);
-                        // invert the brightness if InvertColor is set
-                        var brightness = Brightness(color) / 255.0;
-                        if (invertColor)
-                            brightness = 1 - brightness;
+                    // For every pixel check its' brightness
+                    var color = bitmap.GetPixel(x, y);
+                    // invert the brightness if InvertColor is set
+                    var brightness = Brightness(color) / 255.0;
+                    if (invertColor)
+                        brightness = 1 - brightness;
 
-                        // And select a character based on its' brightness
-                        int charIndex = (int)Math.Round((chars.Length - 1) * brightness);
-                        char ch = chars[charIndex];
+                    // And select a character based on its' brightness
+                    int charIndex = (int)Math.Round((chars.Length - 1) * brightness);
+                    char ch = chars[charIndex];
 
-                        dest.Write(ch);
-                    }
-                    dest.WriteLine();
+                    dest.Write(ch);
                 }
+                dest.WriteLine();
             }
-        }
+    }
         
         /**
          * <summary>Returns a brighness of a given color</summary>
