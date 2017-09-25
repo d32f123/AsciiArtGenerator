@@ -43,7 +43,7 @@ namespace AsciiArtGenerator
         public AsciiArtGenerator(string image) { ImageSource = image; }
 
         // Constants (default values)------------------------------------------------------------------------
-        private const string DEFAULT_CHARS = " .,/?;:|~`!@#$%^&*()-_=+";
+        private const string DEFAULT_CHARS = "  ~`!12@3#4$5%6^7&8*9(0)-_=+}]{[|:;/\\\"'?.,MmnNbBvVcCxXzZlLkKjJhHgGfFdDsSaAoOpPiIuUyYtTrReEwWqQ";
         private const int DEFAULT_IMAGE_RES = 100;
         private const double DEFAULT_ADJUSTMENT = 17.0 / 8.0;
         private const bool DEFAULT_INVERT_COLOR = false;
@@ -53,7 +53,8 @@ namespace AsciiArtGenerator
         private int imageRes;                   // targeted image resolution (either max height or width)
                                                 // the resulting art will maintain the same aspect ratio as the original
         private Bitmap source;
-        private string chars;                   // characters used to synthesize the resulting ASCII art
+        private List<CharBrightness.CharWithBrightness> chars;                   
+                                                // characters used to synthesize the resulting ASCII art
                                                 // they are sorted in order of increasing brightness
 
         private double adjustment;              // one char is 16 pixels in height
@@ -67,10 +68,7 @@ namespace AsciiArtGenerator
         public string ImageSource               // filename for the image to convert
         { set { source = new Bitmap(value); } } // will throw an exception if file is not found
         public string Chars
-        {
-            get { return (string)chars.Clone(); }
-            set { chars = CharBrightness.GetSortedCharacters(value); }
-        }
+        { set { chars = CharBrightness.GetSortedCharacters(value); } }
         public double Adjustment { get { return adjustment; } set { adjustment = value; } }
         public int ImageRes { get { return imageRes; } set { imageRes = value; } }
         public bool InvertColor { get { return invertColor; } set { invertColor = value; } }
@@ -142,19 +140,49 @@ namespace AsciiArtGenerator
                     // For every pixel check its' brightness
                     var color = bitmap.GetPixel(x, y);
                     // invert the brightness if InvertColor is set
+                    // this value varies from 0.0 to 1.0
                     var brightness = Brightness(color) / 255.0;
                     if (invertColor)
                         brightness = 1 - brightness;
 
                     // And select a character based on its' brightness
-                    int charIndex = (int)Math.Round((chars.Length - 1) * brightness);
-                    char ch = chars[charIndex];
+                    char ch = GetClosestChar(chars, brightness);
 
                     dest.Write(ch);
                 }
                 dest.WriteLine();
             }
-    }
+        }
+
+        /**
+         * <summary>Performs a closest neighbor search for the given list
+         * Uses binary search</summary>
+         * <param name="brightness">The wanna-be brightness of the output character</param>
+         * <param name="list">The list of characters and their corresponding brightness levels</param>
+         * <returns>Character with brightness being closest to the given parameter</returns>
+         **/
+        public char GetClosestChar(List<CharBrightness.CharWithBrightness> list, double brightness)
+        {
+            if (list.Count == 1)
+                return list[0].ch;
+            int high = list.Count - 1, low = 0;
+            int med;
+            do
+            {
+                med = (high + low) / 2;
+                if (list[med].brightness == brightness)
+                    return list[med].ch;
+                if (brightness < list[med].brightness)
+                    high = med;
+                else
+                    low = med;
+            } while (high - low > 1);
+
+            if (Math.Abs(brightness - list[low].brightness) < Math.Abs(brightness - list[high].brightness))
+                return list[low].ch;
+            else
+                return list[high].ch;
+        }
         
         /**
          * <summary>Returns a brighness of a given color</summary>

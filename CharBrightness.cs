@@ -19,18 +19,19 @@ namespace AsciiArtGenerator
         private const int DEFAULT_WIDTH = 100;
         private const int DEFAULT_HEIGHT = 100;
 
-        private struct CharWithBrightness
+        public struct CharWithBrightness
         {
             public double brightness;
             public char ch;
         }
         
         // A comparer class for sorting characters according to their brightness
-        private class CharWithBrighnessComparer : Comparer<CharWithBrightness>
+        private class CharWithBrightnessComparer : Comparer<CharWithBrightness>
         {
+            private const int FACTOR = 10000; 
             public override int Compare(CharWithBrightness x, CharWithBrightness y)
             {
-                return (int)Math.Round(x.brightness - y.brightness);
+                return (int)Math.Round(x.brightness * FACTOR - y.brightness * FACTOR);
             }
         }
 
@@ -38,7 +39,7 @@ namespace AsciiArtGenerator
          * <summary>This method is a proxy for <see cref="GetSortedCharacters(string)"/> 
          *      that compiles a string of ascii characters from 32 to 127</summary>
          **/
-        public static string GetSortedCharacters()
+        public static List<CharWithBrightness> GetSortedCharacters()
         {
             StringBuilder stringBuilder = new StringBuilder();
             for (char i = (char)32; i < (char)127; ++i)
@@ -52,7 +53,7 @@ namespace AsciiArtGenerator
          * <param name="chars">Characters to sort</param>
          * <returns>Sorted characters based on their brightness</returns>
          **/
-        public static string GetSortedCharacters(string chars)
+        public static List<CharWithBrightness> GetSortedCharacters(string chars)
         {
             List<CharWithBrightness> list = new List<CharWithBrightness>(chars.Length);
 
@@ -104,13 +105,50 @@ namespace AsciiArtGenerator
                 list.Add(new CharWithBrightness { brightness = sum / (width * height), ch = chars[i] });
             }
 
-            list.Sort(new CharWithBrighnessComparer());
+            list.Sort(new CharWithBrightnessComparer());
 
-            // return the result, converting from list to string
-            StringBuilder result = new StringBuilder(chars.Length);
-            for (int i = 0; i < chars.Length; ++i)
-                result.Append(list[i].ch);
-            return result.ToString();
+
+
+            return NormalizeBrightness(RemoveDuplicates(list));
+        }
+
+
+        /**
+         * <summary>Returns a normalized list (values from 0.0 to 1.0) based on a SORTED list</summary>
+         * <param name="list">List to be normalized</param>
+         * <returns>A normalized list</returns>
+         **/ 
+        private static List<CharWithBrightness> NormalizeBrightness(List<CharWithBrightness> list)
+        {
+            var max = list[list.Count - 1].brightness;
+
+            List<CharWithBrightness> ret = new List<CharWithBrightness>(list.Count);
+
+            foreach (CharWithBrightness curVal in list)
+                ret.Add(new CharWithBrightness { brightness = curVal.brightness / max, ch = curVal.ch });
+
+            return ret;
+        }
+
+        /**
+         * <summary>Returns a list without duplicates based on a SORTED list</summary>
+         * <returns>A list without duplicates</returns>
+         **/
+        private static List<CharWithBrightness> RemoveDuplicates(List<CharWithBrightness> list)
+        {
+            List<CharWithBrightness> ret = new List<CharWithBrightness>(list.Count);
+
+            var prev = list[0].brightness;
+            ret.Add(list[0]);
+            for (var i = 1; i < list.Count; ++i)
+            {
+                if (list[i].brightness == prev)
+                    continue;
+                prev = list[i].brightness;
+                ret.Add(list[i]);
+            }
+
+            return ret;
         }
 
         private static double Brightness(Color c)
