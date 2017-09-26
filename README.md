@@ -10,3 +10,11 @@ AsciiArtGenerator <filename> [-o output_file] [-i] [-a adjustment] [-c chars] [-
 - -c chars: characters used in building ascii art
 - -r max_res: max resolution of the resulting image
 - -i: invert the resulting image
+
+## Example
+### Command
+```
+AsciiArtGenerator.exe image.jpg
+```
+### Result
+![alt text](https://i.imgur.com/uF0bbVQ.png)
